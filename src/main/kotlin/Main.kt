@@ -10,6 +10,7 @@ import com.github.doyaaaaaken.kotlincsv.dsl.csvReader
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.Json
 import java.io.File
+import java.nio.ByteBuffer
 import java.nio.channels.FileChannel
 import java.nio.file.Files
 import java.nio.file.Path
@@ -69,11 +70,19 @@ data class CocheBinario(
     override val HP: Int
 ): ICoche
 
+const val TAMANO_ID = Int.SIZE_BYTES //4Bytes
+const val TAMANO_MODELO = 40 //40bytes
+const val TAMANO_MARCA = 40
+const val TAMANO_CONSUMO = Double.SIZE_BYTES //8 bytes
+const val TAMANO_HP = Int.SIZE_BYTES
 
-fun mostrasData(coches: List<ICoche>){
+const val TAMANO_REGISTRO = TAMANO_ID + TAMANO_MODELO + TAMANO_MARCA + TAMANO_CONSUMO + TAMANO_HP //96 bytes
+
+
+fun mostrarData(coches: List<ICoche>){
     for (coche in coches) {
         println(" - ID: ${coche.id_coche}, Modelo: ${coche.nombre_modelo}, " +
-                "Marca: ${coche.nombre_marca}, Consumo:" +
+                "Marca: ${coche.nombre_marca}, Consumo: " +
                 "${coche.consumo} caballos: ${coche.HP} ")
     }
 }
@@ -127,6 +136,46 @@ fun leerXML(ruta: Path): List<ICoche> {
     return cochesWrapper.listaCochesXML
 }
 
+fun leerBinario(path: Path): List<ICoche> {
+    val coches = mutableListOf<ICoche>()
+    try {
+
+        FileChannel.open(
+            path,
+            StandardOpenOption.READ,
+        ).use { canal ->
+            val buffer = ByteBuffer.allocate(TAMANO_REGISTRO)
+
+            while (canal.read(buffer) > 0) {
+                buffer.flip()
+
+                val id_coche = buffer.getInt()
+
+                val bytesNombre_Modelo = ByteArray(TAMANO_MODELO)
+                buffer.get(bytesNombre_Modelo)
+                val nombre_modelo = String(bytesNombre_Modelo, Charsets.UTF_8).trim()
+
+                val bytesNombre_Marca = ByteArray(TAMANO_MODELO)
+                buffer.get(bytesNombre_Marca)
+                val nombre_marca = String(bytesNombre_Marca, Charsets.UTF_8).trim()
+
+                val consumo = buffer.getDouble()
+
+                val HP = buffer.getInt()
+
+                coches.add(CocheBinario(id_coche, nombre_modelo, nombre_marca, consumo, HP))
+
+                buffer.clear()
+            }
+        }
+    } catch (e: Exception) {
+        println("Error: ${e.message}")
+    }
+    return coches
+
+}
+
+
 
 fun vaciarCrearFichero(path: Path) {
     try {
@@ -158,8 +207,16 @@ fun main() {
     val pathini: Path = Paths.get("datos_ini/coches.json")
     val pathfin: Path = Paths.get("datos_ini/coches2.bin")
 
-    mostrasData(leerCSV(Paths.get("datos_ini/coches.csv")))
-    println()
-    mostrasData(leerJSON(Paths.get("datos_ini/coches.json")))
+//    mostrarData(leerCSV(Paths.get("datos_ini/coches.csv")))
+//    println()
+//    mostrarData(leerJSON(Paths.get("datos_ini/coches.json")))
+//    println()
+//    mostrarData(leerXML(Paths.get("datos_ini/coches.xml")))
+//    println()
+//    mostrarData(leerBinario(Paths.get("datos_ini/coches.bin")))
+
+
+
+
 
 }

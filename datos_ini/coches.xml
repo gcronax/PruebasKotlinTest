@@ -1,37 +1,37 @@
-<autos>
-    <auto>
-        <id_auto>1</id_auto>
-        <modelo>Corolla</modelo>
-        <marca>Toyota</marca>
+<coches>
+    <coche>
+        <id_coche>1</id_coche>
+        <nombre_modelo>Corolla</nombre_modelo>
+        <nombre_marca>Toyota</nombre_marca>
         <consumo>6.0</consumo>
-        <potencia>139</potencia>
-    </auto>
-    <auto>
-        <id_auto>2</id_auto>
-        <modelo>Civic</modelo>
-        <marca>Honda</marca>
+        <HP>139</HP>
+    </coche>
+    <coche>
+        <id_coche>2</id_coche>
+        <nombre_modelo>Civic</nombre_modelo>
+        <nombre_marca>Honda</nombre_marca>
         <consumo>5.8</consumo>
-        <potencia>158</potencia>
-    </auto>
-    <auto>
-        <id_auto>3</id_auto>
-        <modelo>Model 3</modelo>
-        <marca>Tesla</marca>
+        <HP>158</HP>
+    </coche>
+    <coche>
+        <id_coche>3</id_coche>
+        <nombre_modelo>Model 3</nombre_modelo>
+        <nombre_marca>Tesla</nombre_marca>
         <consumo>0.0</consumo>
-        <potencia>283</potencia>
-    </auto>
-    <auto>
-        <id_auto>4</id_auto>
-        <modelo>Golf</modelo>
-        <marca>Volkswagen</marca>
+        <HP>283</HP>
+    </coche>
+    <coche>
+        <id_coche>4</id_coche>
+        <nombre_modelo>Golf</nombre_modelo>
+        <nombre_marca>Volkswagen</nombre_marca>
         <consumo>5.5</consumo>
-        <potencia>147</potencia>
-    </auto>
-    <auto>
-        <id_auto>5</id_auto>
-        <modelo>Mustang GT</modelo>
-        <marca>Ford</marca>
+        <HP>147</HP>
+    </coche>
+    <coche>
+        <id_coche>5</id_coche>
+        <nombre_modelo>Mustang GT</nombre_modelo>
+        <nombre_marca>Ford</nombre_marca>
         <consumo>12.0</consumo>
-        <potencia>450</potencia>
-    </auto>
-</autos>
+        <HP>450</HP>
+    </coche>
+</coches>
