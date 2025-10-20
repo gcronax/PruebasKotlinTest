@@ -1,9 +1,15 @@
 package org.example
 
+import com.fasterxml.jackson.dataformat.xml.XmlMapper
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlElementWrapper
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement
+import com.fasterxml.jackson.module.kotlin.readValue
+import com.fasterxml.jackson.module.kotlin.registerKotlinModule
+import com.github.doyaaaaaken.kotlincsv.dsl.csvReader
 import kotlinx.serialization.Serializable
+import kotlinx.serialization.json.Json
+import java.io.File
 import java.nio.channels.FileChannel
 import java.nio.file.Files
 import java.nio.file.Path
@@ -18,7 +24,7 @@ interface ICoche {
     val HP: Int
 }
 
-data class ICocheCSV(
+data class CocheCSV(
     override val id_coche: Int,
     override val nombre_modelo: String,
     override val nombre_marca: String,
@@ -26,7 +32,7 @@ data class ICocheCSV(
     override val HP: Int
 ): ICoche
 
-data class ICocheXML(
+data class CocheXML(
     @JacksonXmlProperty(localName = "id_coche")
     override val id_coche: Int,
     @JacksonXmlProperty(localName = "nombre_modelo")
@@ -42,11 +48,11 @@ data class ICocheXML(
 @JacksonXmlRootElement(localName = "coches")
 data class CocheXmlRoot(@JacksonXmlElementWrapper(useWrapping = false)
                   @JacksonXmlProperty(localName = "coche")
-                  val listaCochesXML: List<ICocheXML> = emptyList()
+                  val listaCochesXML: List<CocheXML> = emptyList()
 )
 
 @Serializable
-data class ICocheJSON(
+data class CocheJSON(
     override val id_coche: Int,
     override val nombre_modelo: String,
     override val nombre_marca: String,
@@ -55,7 +61,7 @@ data class ICocheJSON(
 ): ICoche
 
 
-data class ICocheBinario(
+data class CocheBinario(
     override val id_coche: Int,
     override val nombre_modelo: String,
     override val nombre_marca: String,
@@ -68,11 +74,58 @@ fun mostrasData(coches: List<ICoche>){
     for (coche in coches) {
         println(" - ID: ${coche.id_coche}, Modelo: ${coche.nombre_modelo}, " +
                 "Marca: ${coche.nombre_marca}, Consumo:" +
-                "${coche.consumo} cavallos: ${coche.HP} ")
+                "${coche.consumo} caballos: ${coche.HP} ")
     }
 }
 
+fun leerCSV(ruta: Path): List<ICoche> {
+    var coches: List<ICoche> =emptyList()
+    if (!Files.isReadable(ruta)) {
+        println("Error: No se puede leer el fichero en la ruta: $ruta")
+    } else{
+        val reader = csvReader {
+            delimiter = ';'
+        }
+        val filas: List<List<String>> = reader.readAll(ruta.toFile())
+        coches = filas.mapNotNull { columnas ->
+            if (columnas.size >= 5) {
+                try {
+                    val id_coche = columnas[0].toInt()
+                    val nombre_modelo = columnas[1]
+                    val nombre_marca = columnas[2]
+                    val consumo = columnas[3].toDouble()
+                    val hp = columnas[4].toInt()
+                    CocheCSV(id_coche,nombre_modelo, nombre_marca, consumo, hp)
+                } catch (e: Exception) {
 
+                    println("Fila inválida ignorada: $columnas -> Error: ${e.message}")
+                    null
+                }
+            } else {
+                println("Fila con formato incorrecto ignorada: $columnas")
+                null
+            }
+        }
+    }
+    return coches
+}
+fun leerJSON(ruta: Path): List<ICoche> {
+    var coches: List<ICoche> =emptyList()
+    try {
+        val jsonString = Files.readString(ruta)
+        coches = Json.decodeFromString<List<CocheJSON>>(jsonString)
+    }catch (e: Exception) {
+        println("Error: ${e.message}")
+    }
+    return coches
+}
+
+fun leerXML(ruta: Path): List<ICoche> {
+    val fichero: File = ruta.toFile()
+    val xmlMapper = XmlMapper().registerKotlinModule()
+    val cochesWrapper: CocheXmlRoot = xmlMapper.readValue(fichero)
+    return cochesWrapper.listaCochesXML
+}
 
 
 fun vaciarCrearFichero(path: Path) {
@@ -102,7 +155,11 @@ fun main() {
 
 
 
-    val pathini: Path = Paths.get("datos_ini/coches.csv")
+    val pathini: Path = Paths.get("datos_ini/coches.json")
+    val pathfin: Path = Paths.get("datos_ini/coches2.bin")
 
-    val pathfin: Path = Paths.get("datos_ini/coches.bin")
+    mostrasData(leerCSV(Paths.get("datos_ini/coches.csv")))
+    println()
+    mostrasData(leerJSON(Paths.get("datos_ini/coches.json")))
+
 }
