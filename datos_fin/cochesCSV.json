@@ -1,0 +1,37 @@
+[
+    {
+        "id_coche": 1,
+        "nombre_modelo": "Corolla",
+        "nombre_marca": "Toyota",
+        "consumo": 6.0,
+        "HP": 139
+    },
+    {
+        "id_coche": 2,
+        "nombre_modelo": "Civic",
+        "nombre_marca": "Honda",
+        "consumo": 5.8,
+        "HP": 158
+    },
+    {
+        "id_coche": 3,
+        "nombre_modelo": "Model 3",
+        "nombre_marca": "Tesla",
+        "consumo": 0.0,
+        "HP": 283
+    },
+    {
+        "id_coche": 4,
+        "nombre_modelo": "Golf",
+        "nombre_marca": "Volkswagen",
+        "consumo": 5.5,
+        "HP": 147
+    },
+    {
+        "id_coche": 5,
+        "nombre_modelo": "Mustang GT",
+        "nombre_marca": "Ford",
+        "consumo": 12.0,
+        "HP": 450
+    }
+]

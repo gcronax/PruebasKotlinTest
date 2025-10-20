@@ -7,7 +7,9 @@ import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement
 import com.fasterxml.jackson.module.kotlin.readValue
 import com.fasterxml.jackson.module.kotlin.registerKotlinModule
 import com.github.doyaaaaaken.kotlincsv.dsl.csvReader
+import com.github.doyaaaaaken.kotlincsv.dsl.csvWriter
 import kotlinx.serialization.Serializable
+import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 import java.io.File
 import java.nio.ByteBuffer
@@ -175,7 +177,48 @@ fun leerBinario(path: Path): List<ICoche> {
 
 }
 
+fun escribirCSV(ruta: Path, coches: List<ICoche>){
+    vaciarCrearFichero(ruta)
+    try {
+        val fichero: File = ruta.toFile()
+        csvWriter {
+            delimiter = ';'
+        }.writeAll(
+            coches.map { coche ->
+                listOf(coche.id_coche.toString(),
+                    coche.nombre_modelo,
+                    coche.nombre_marca,
+                    coche.consumo.toString(),
+                    coche.HP.toString())
+            },
+            fichero
+        )
+        println("\nInformación guardada en: $fichero")
+    } catch (e: Exception) {
+        println("Error: ${e.message}")
+    }
+}
+fun escribirJSON(ruta: Path, coches: List<ICoche>) {
+    vaciarCrearFichero(ruta)
 
+    val cochesJson: List<CocheJSON> = coches.map { coche ->
+        CocheJSON(
+            coche.id_coche,
+            coche.nombre_modelo,
+            coche.nombre_marca,
+            coche.consumo,
+            coche.HP
+        )
+    }
+
+    try {
+        val json = Json { prettyPrint = true }.encodeToString(cochesJson)
+        Files.writeString(ruta, json)
+        println("\nInformación guardada en: $ruta")
+    } catch (e: Exception) {
+        println("Error: ${e.message}")
+    }
+}
 
 fun vaciarCrearFichero(path: Path) {
     try {
@@ -214,6 +257,21 @@ fun main() {
 //    mostrarData(leerXML(Paths.get("datos_ini/coches.xml")))
 //    println()
 //    mostrarData(leerBinario(Paths.get("datos_ini/coches.bin")))
+    val rutas= listOf(
+        leerCSV(Paths.get("datos_ini/coches.csv")),
+        leerXML(Paths.get("datos_ini/coches.xml")),
+        leerJSON(Paths.get("datos_ini/coches.json")),
+        leerBinario(Paths.get("datos_ini/coches.bin"))
+    )
+    val prefijos= listOf("CSV","XML","JSON","BIN")
+    for (i in 0.. 3){
+        escribirCSV(Paths.get("datos_fin/coches${prefijos[i]}.csv"),rutas[i])
+        escribirJSON(Paths.get("datos_fin/coches${prefijos[i]}.json"),rutas[i])
+
+
+    }
+
+
 
 
 
