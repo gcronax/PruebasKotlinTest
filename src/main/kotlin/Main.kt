@@ -18,6 +18,7 @@ import java.nio.charset.Charset
 import java.nio.file.Files
 import java.nio.file.Path
 import java.nio.file.Paths
+import java.nio.file.StandardCopyOption
 import java.nio.file.StandardOpenOption
 
 interface ICoche {
@@ -287,6 +288,100 @@ fun escribirBIN(ruta: Path, coches: List<ICoche>){
 
 }
 
+fun mostrarBIN(path: Path): List<ICoche> {
+    //como en la documentacion de referencia esta funcion devolvia una lista para luego ser tratada
+    //lo he deado igual salvo que printeo tambien lo que se ha leido
+    val coches = mutableListOf<ICoche>()
+    FileChannel.open(path, StandardOpenOption.READ).use { canal ->
+        val buffer = ByteBuffer.allocate(TAMANO_REGISTRO)
+        while (canal.read(buffer) > 0) {
+            buffer.flip()
+
+            val id = buffer.getInt()
+
+            val modeloBytes = ByteArray(TAMANO_MODELO)
+            buffer.get(modeloBytes)
+            val modelo = String(modeloBytes,
+                Charset.defaultCharset()).trim()
+
+            val marcaBytes = ByteArray(TAMANO_MARCA)
+            buffer.get(marcaBytes)
+            val marca = String(marcaBytes,
+                Charset.defaultCharset()).trim()
+
+
+            val consumo = buffer.getDouble()
+            val HP = buffer.getInt()
+
+            coches.add(CocheBinario(id_coche = id, nombre_modelo = modelo,
+                nombre_marca = marca,consumo = consumo,HP = HP))
+            println("ID: ${id}, Modelo: ${modelo}, Marca: ${marca}," +
+                    " Consumo: ${consumo}, Potencia: ${HP}")
+            buffer.clear()
+        }
+    }
+    return coches
+}
+
+fun modificar(path: Path, idCoche: Int, nuevoHP: Int)
+{       //modificamos HP horsepower
+    FileChannel.open(path, StandardOpenOption.READ,
+        StandardOpenOption.WRITE).use { canal ->
+        val buffer = ByteBuffer.allocate(TAMANO_REGISTRO)
+        var encontrado = false
+        while (canal.read(buffer) > 0 && !encontrado) {
+            val posicionActual = canal.position()
+            buffer.flip()
+            val id = buffer.getInt()
+            if (id == idCoche) {
+                val posicionConsumo = posicionActual - TAMANO_REGISTRO + TAMANO_ID + TAMANO_MODELO + TAMANO_MARCA + TAMANO_CONSUMO
+
+                val bufferHP = ByteBuffer.allocate(TAMANO_HP)
+                bufferHP.putInt(nuevoHP)
+
+                bufferHP.flip()
+                canal.write(bufferHP, posicionConsumo)
+                encontrado = true
+            }
+            buffer.clear()
+        }
+        if (encontrado) {
+            println("Potencia del coche con ID $idCoche modificado a $nuevoHP")
+        } else {
+            println("No se encontró el coche con ID $idCoche")
+        }
+    }
+}
+
+fun eliminar(path: Path, idCoche: Int) {
+    val pathTemporal = Paths.get(path.toString() + ".tmp")
+    var cocheEncontrado = false
+    FileChannel.open(path, StandardOpenOption.READ).use { canalLectura ->
+        FileChannel.open(pathTemporal, StandardOpenOption.WRITE,
+            StandardOpenOption.CREATE).use { canalEscritura ->
+            val buffer = ByteBuffer.allocate(TAMANO_REGISTRO)
+            while (canalLectura.read(buffer) > 0) {
+                buffer.flip()
+                val id = buffer.getInt()
+                if (id == idCoche) {
+                    cocheEncontrado = true
+                } else {
+                    buffer.rewind()
+                    canalEscritura.write(buffer)
+                }
+                buffer.clear()
+            }
+        }
+    }
+    if (cocheEncontrado) {
+        Files.move(pathTemporal, path, StandardCopyOption.REPLACE_EXISTING)
+        println("Coche con ID $idCoche eliminado con éxito.")
+    } else {
+        Files.delete(pathTemporal)
+        println("No se encontró ningun conche con ID $idCoche.")
+    }
+}
+
 fun vaciarCrearFichero(path: Path) {
     try {
         FileChannel.open(path, StandardOpenOption.WRITE,
@@ -336,9 +431,11 @@ fun main() {
         escribirJSON(Paths.get("datos_fin/coches${prefijos[i]}.json"),rutas[i])
         escribirXML(Paths.get("datos_fin/coches${prefijos[i]}.xml"),rutas[i])
         escribirBIN(Paths.get("datos_fin/coches${prefijos[i]}.bin"),rutas[i])
-
-
     }
+    mostrarData(mostrarBIN(Paths.get("datos_ini/coches.bin")))
+
+
+
 
 
 
