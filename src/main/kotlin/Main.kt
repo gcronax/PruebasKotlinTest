@@ -14,6 +14,7 @@ import kotlinx.serialization.json.Json
 import java.io.File
 import java.nio.ByteBuffer
 import java.nio.channels.FileChannel
+import java.nio.charset.Charset
 import java.nio.file.Files
 import java.nio.file.Path
 import java.nio.file.Paths
@@ -220,6 +221,72 @@ fun escribirJSON(ruta: Path, coches: List<ICoche>) {
     }
 }
 
+fun escribirXML(ruta: Path, coches: List<ICoche>) {
+    vaciarCrearFichero(ruta)
+
+    val cochesXml: List<CocheXML> = coches.map { coche ->
+        CocheXML(
+            coche.id_coche,
+            coche.nombre_modelo,
+            coche.nombre_marca,
+            coche.consumo,
+            coche.HP
+        )
+    }
+    try {
+        val fichero: File = ruta.toFile()
+        val contenedorXml = CocheXmlRoot(cochesXml)
+        val xmlMapper = XmlMapper().registerKotlinModule()
+
+        val xmlString =
+            xmlMapper.writerWithDefaultPrettyPrinter().writeValueAsString(contenedorXml)
+        fichero.writeText(xmlString)
+        println("\nInformación guardada en: $fichero")
+    } catch (e: Exception) {
+        println("Error: ${e.message}")
+    }
+}
+
+fun escribirBIN(ruta: Path, coches: List<ICoche>){
+    vaciarCrearFichero(ruta)
+    coches.forEach { coche->
+        val nuevaCocche = CocheBinario(coche.id_coche,  coche.nombre_modelo,  coche.nombre_marca,  coche.consumo,  coche.HP)
+
+        try {
+            FileChannel.open(ruta, StandardOpenOption.WRITE,
+                StandardOpenOption.CREATE, StandardOpenOption.APPEND).use { canal ->
+                val buffer = ByteBuffer.allocate(TAMANO_REGISTRO)
+
+                buffer.putInt(nuevaCocche.id_coche)
+
+                val modeloBytes = nuevaCocche.nombre_modelo
+                    .padEnd(40, ' ')
+                    .toByteArray(Charset.defaultCharset())
+                buffer.put(modeloBytes, 0, 40)
+
+                val marcaBytes = nuevaCocche.nombre_marca
+                    .padEnd(40, ' ')
+                    .toByteArray(Charset.defaultCharset())
+                buffer.put(marcaBytes, 0, 40)
+
+                buffer.putDouble(nuevaCocche.consumo)
+
+                buffer.putInt(nuevaCocche.HP)
+
+                buffer.flip()
+                while (buffer.hasRemaining()) {
+                    canal.write(buffer)
+                }
+                println("Coche ${nuevaCocche.nombre_marca} '${nuevaCocche.nombre_modelo}' añadido con éxito.")
+            }
+        } catch (e: Exception) {
+            println("Error al añadir la coche: ${e.message}")
+        }
+
+    }
+
+}
+
 fun vaciarCrearFichero(path: Path) {
     try {
         FileChannel.open(path, StandardOpenOption.WRITE,
@@ -267,6 +334,8 @@ fun main() {
     for (i in 0.. 3){
         escribirCSV(Paths.get("datos_fin/coches${prefijos[i]}.csv"),rutas[i])
         escribirJSON(Paths.get("datos_fin/coches${prefijos[i]}.json"),rutas[i])
+        escribirXML(Paths.get("datos_fin/coches${prefijos[i]}.xml"),rutas[i])
+        escribirBIN(Paths.get("datos_fin/coches${prefijos[i]}.bin"),rutas[i])
 
 
     }

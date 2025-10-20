@@ -1,0 +1,37 @@
+<coches>
+  <coche>
+    <id_coche>1</id_coche>
+    <nombre_modelo>Corolla</nombre_modelo>
+    <nombre_marca>Toyota</nombre_marca>
+    <consumo>6.0</consumo>
+    <hp>139</hp>
+  </coche>
+  <coche>
+    <id_coche>2</id_coche>
+    <nombre_modelo>Civic</nombre_modelo>
+    <nombre_marca>Honda</nombre_marca>
+    <consumo>5.8</consumo>
+    <hp>158</hp>
+  </coche>
+  <coche>
+    <id_coche>3</id_coche>
+    <nombre_modelo>Model 3</nombre_modelo>
+    <nombre_marca>Tesla</nombre_marca>
+    <consumo>0.0</consumo>
+    <hp>283</hp>
+  </coche>
+  <coche>
+    <id_coche>4</id_coche>
+    <nombre_modelo>Golf</nombre_modelo>
+    <nombre_marca>Volkswagen</nombre_marca>
+    <consumo>5.5</consumo>
+    <hp>147</hp>
+  </coche>
+  <coche>
+    <id_coche>5</id_coche>
+    <nombre_modelo>Mustang GT</nombre_modelo>
+    <nombre_marca>Ford</nombre_marca>
+    <consumo>12.0</consumo>
+    <hp>450</hp>
+  </coche>
+</coches>
