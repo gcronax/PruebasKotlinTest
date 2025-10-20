@@ -20,6 +20,8 @@ import java.nio.file.Path
 import java.nio.file.Paths
 import java.nio.file.StandardCopyOption
 import java.nio.file.StandardOpenOption
+import java.util.InputMismatchException
+import java.util.Scanner
 
 interface ICoche {
     val id_coche: Int
@@ -382,6 +384,39 @@ fun eliminar(path: Path, idCoche: Int) {
     }
 }
 
+fun anadir(path: Path, id_coche: Int, nombre_modelo: String, nombre_marca: String, consumo: Double, HP: Int) {
+    val nuevaCocche = CocheBinario(id_coche,  nombre_modelo,  nombre_marca,  consumo,  HP)
+
+    try {
+        FileChannel.open(path, StandardOpenOption.WRITE,
+            StandardOpenOption.CREATE, StandardOpenOption.APPEND).use { canal ->
+            val buffer = ByteBuffer.allocate(TAMANO_REGISTRO)
+
+            buffer.putInt(nuevaCocche.id_coche)
+
+            val modeloBytes = nuevaCocche.nombre_modelo
+                .padEnd(40, ' ')
+                .toByteArray(Charset.defaultCharset())
+            buffer.put(modeloBytes, 0, 40)
+            val marcaBytes = nuevaCocche.nombre_marca
+                .padEnd(40, ' ')
+                .toByteArray(Charset.defaultCharset())
+            buffer.put(marcaBytes, 0, 40)
+
+            buffer.putDouble(nuevaCocche.consumo)
+            buffer.putInt(nuevaCocche.HP)
+
+            buffer.flip()
+            while (buffer.hasRemaining()) {
+                canal.write(buffer)
+            }
+            println("Coche ${nuevaCocche.nombre_marca} '${nuevaCocche.nombre_modelo}' añadido con éxito.")
+        }
+    } catch (e: Exception) {
+        println("Error al añadir la coche: ${e.message}")
+    }
+}
+
 fun vaciarCrearFichero(path: Path) {
     try {
         FileChannel.open(path, StandardOpenOption.WRITE,
@@ -409,8 +444,7 @@ fun main() {
 
 
 
-    val pathini: Path = Paths.get("datos_ini/coches.json")
-    val pathfin: Path = Paths.get("datos_ini/coches2.bin")
+
 
 //    mostrarData(leerCSV(Paths.get("datos_ini/coches.csv")))
 //    println()
@@ -439,8 +473,78 @@ fun main() {
 
 
 
+    val pathini: Path = Paths.get("copias/pruebas.bin")
+    val pathfin: Path = Paths.get("copias/pruebas.bin")
 
+    val scanner = Scanner(System.`in`)
+    var itera = true
 
+    do {
+        println()
+        println("   Selecciona una opcion: ")
+        println("1. Mostrar todos los registros")
+        println("2. Añadir un nuevo registro")
+        println("3. Modificar un registro (por ID)")
+        println("4. Eliminar un registro (por ID)")
+        println("5. Salir")
 
+        try {
+            val select = scanner.nextInt()
+            scanner.nextLine()
+            when (select) {
+                1 -> {
+                    mostrarBIN(pathini)
+                }
+                2 -> {
+                    println(" Añadir coche")
+                    print("ID: ")
+                    val id = scanner.nextInt()
+                    scanner.nextLine()
+                    print("Modelo: ")
+                    val Modelo = scanner.nextLine()
+                    print("Marca: ")
+                    val Marca = scanner.nextLine()
+                    print("Consumo (double): ")
+                    val Consumo = scanner.nextDouble()
+                    print("Potencia (int): ")
+                    val Potencia = scanner.nextInt()
+                    scanner.nextLine()
+
+                    anadir(pathini, id, Modelo, Marca, Consumo, Potencia)
+                }
+                3 -> {
+                    print("ID del coche a modificar: ")
+                    val id = scanner.nextInt()
+                    print("Nueva Potencia: ")
+                    val nuevaPotencia = scanner.nextInt()
+                    scanner.nextLine()
+
+                    modificar(pathini, id, nuevaPotencia)
+                }
+                4 -> {
+
+                    print("ID del coche a eliminar: ")
+                    val id = scanner.nextInt()
+                    scanner.nextLine()
+                    eliminar(pathini, id)
+                }
+                5 -> {
+                    itera = false
+                }
+
+                else -> {
+                    println("Opcion no valida. Por favor, selecciona una opcion del 1 al 5.")
+                }
+            }
+
+        } catch (e: InputMismatchException) {
+            println("Error: Debes introducir un numero valido.")
+            scanner.nextLine()
+        } catch (e: Exception) {
+            println("Error: ${e.message}")
+            scanner.nextLine()
+        }
+    } while (itera)
+    scanner.close()
 
 }
